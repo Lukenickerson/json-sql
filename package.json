@@ -1,0 +1,28 @@
+{
+  "name": "json-sql",
+  "version": "0.1.0",
+  "description": "ORM for creating SQL from JSON",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint \"src/**/*.js\"",
+    "test": "set \"NODE_OPTIONS=--experimental-vm-modules\" && npx jest"
+  },
+  "keywords": [
+    "JSON",
+    "SQL",
+    "ORM"
+  ],
+  "author": "Luke Nickerson",
+  "license": "SEE LICENSE IN LICENSE",
+  "dependencies": {
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.2.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^24.4.0",
+    "jest": "^27.1.0"
+  }
+}
