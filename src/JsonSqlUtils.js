@@ -6,7 +6,7 @@ class JsonSqlUtils {
 	}
 
 	static findTableColumn(colName, table) {
-		return JsonSqlUtils.findColumn(table.columns, colName);
+		return JsonSqlUtils.findColumn(colName, table.columns);
 	}
 
 	static findColumn(colName, columns) {
@@ -37,6 +37,18 @@ class JsonSqlUtils {
 
 	static isStringFormatting(formatting) {
 		return (formatting === FORMATTING.STRING);
+	}
+
+	static isPlainFormatting(formatting) {
+		return (formatting === FORMATTING.PLAIN);
+	}
+
+	static isBooleanFormatting(formatting) {
+		return (formatting === FORMATTING.BOOLEAN);
+	}
+
+	static isBinaryFormatting(formatting) {
+		return (formatting === FORMATTING.BINARY);
 	}
 }
 

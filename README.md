@@ -35,7 +35,7 @@ const accountTypesTable = {
 		['B'],
 		['C'],
 	],
-}
+};
 const accountTable = {
 	name: 'account',
 	notes: 'User accounts',
@@ -104,6 +104,7 @@ await db.disconnect();
 
 ## Dependencies
 - https://github.com/mysqljs/mysql (only for `JsonSqlDatabase`)
+- Developed on Node v16.14.0
 
 ## Current Limitations
 * SQL injection is possible if you use untrusted SQL with the `select`, `update`, or `query` methods.

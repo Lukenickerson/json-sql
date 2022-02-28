@@ -1,4 +1,4 @@
-import { DEFAULT_SIZE, DEFAULT_DATATYPE, FORMATTING } from './JsonSqlConstants.js';
+import { DEFAULT_SIZE, DEFAULT_DATATYPE } from './JsonSqlConstants.js';
 import JsonSqlUtils from './JsonSqlUtils.js';
 
 const COMMA = ', ';
@@ -21,15 +21,15 @@ class JsonSqlConverter {
 	static getInsertValueSql(value, dataType) {
 		if (value === undefined) throw new Error('undefined is invalid value for insert sql');
 		if (value === null) return 'null';
-		const formatting = JsonSqlConverter.getDataTypeFormatting(dataType);
-		if (formatting === FORMATTING.PLAIN) {
+		const formatting = JsonSqlUtils.getDataTypeFormatting(dataType);
+		if (JsonSqlUtils.isPlainFormatting(formatting)) {
 			return String(value);
 		}
-		if (formatting === FORMATTING.STRING) {
+		if (JsonSqlUtils.isStringFormatting(formatting)) {
 			// Strings need to be wrapped in single quotes and have single quotes escaped
 			return `'${value.replaceAll("'", "\\'")}'`;
 		}
-		if (formatting === FORMATTING.BOOLEAN) {
+		if (JsonSqlUtils.isBooleanFormatting(formatting)) {
 			// Allow true and false to convert to 1 and 0 respectively
 			if (value === true) return '1';
 			if (value === false) return '0';
@@ -38,7 +38,7 @@ class JsonSqlConverter {
 			if (str !== '0' && str !== '1') throw new Error('Incorrect value for boolean - needs to be true, false, 0, 1');
 			return str;
 		}
-		if (formatting === FORMATTING.BINARY) {
+		if (JsonSqlUtils.isBinaryFormatting(formatting)) {
 			return `BINARY(${value})`;
 		}
 		console.warn('Unknown formatting', value, dataType);

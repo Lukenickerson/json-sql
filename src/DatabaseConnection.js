@@ -7,14 +7,14 @@ const NOOP = () => {};
 /** A wrapper for mysql, to allow for easy promise/async/await-based querying */
 class DatabaseConnection {
 	constructor(config = {}) {
+		if (config.console) {
+			this.console = (typeof config.console === 'object') ? config.console : console;
+		} else {
+			this.console = { log: NOOP, warn: NOOP, error: NOOP };
+		}
 		this.config = config;
 		this.mysqlConnection = this.createMySqlConnection();
 		this.isConnected = false;
-		if (config.noConsole) {
-			this.console = { log: NOOP, warn: NOOP, error: NOOP };
-		} else {
-			this.console = config.console || console;
-		}
 	}
 
 	createMySqlConnection() {
