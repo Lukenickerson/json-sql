@@ -24,7 +24,7 @@ class JsonSqlValidator {
 
 	static validateColumnInsertData(colName, value, table = {}, tables = []) {
 		const validationErrors = [];
-		const col = JsonSqlUtils.findTableColumn(colName, table);
+		const col = JsonSqlUtils.findColumn(colName, table.columns);
 		if (!col) throw new Error(`Could not validate - no column ${colName} for table ${table ? table.name : 'NO TABLE'}`);
 		const {
 			foreignKey, nullable, dataType, size, primaryKey, unique,

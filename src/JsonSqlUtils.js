@@ -5,11 +5,7 @@ class JsonSqlUtils {
 		return tables.find((table) => table.name === tableName);
 	}
 
-	static findTableColumn(colName, table) {
-		return JsonSqlUtils.findColumn(colName, table.columns);
-	}
-
-	static findColumn(colName, columns) {
+	static findColumn(colName, columns = []) {
 		return columns.find((col) => col.name === colName);
 	}
 

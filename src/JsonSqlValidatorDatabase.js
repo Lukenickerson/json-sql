@@ -1,4 +1,3 @@
-import JsonSqlUtils from './JsonSqlUtils.js';
 import JsonSqlDatabase from './JsonSqlDatabase.js';
 import JsonSqlValidator from './JsonSqlValidator.js';
 
@@ -8,7 +7,8 @@ class JsonSqlValidatorDatabase extends JsonSqlDatabase {
 	}
 
 	validateInsert(value, destinationTable, destinationColumn) {
-		const table = JsonSqlUtils.findTable(destinationTable);
+		const table = this.findTable(destinationTable);
+		if (!table) throw new Error(`Table ${destinationTable} could not be found in db`);
 		const tables = this.getTables();
 		const errors = JsonSqlValidator.validateColumnInsertData(
 			destinationColumn, value, table, tables,
