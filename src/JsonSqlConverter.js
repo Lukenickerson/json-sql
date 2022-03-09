@@ -11,7 +11,9 @@ class JsonSqlConverter {
 	// Other
 
 	static getColumnDataType(col) {
-		if (col.dataType === 'VARCHAR' || col.dataType === 'CHAR') {
+		if (col.dataType === 'VARCHAR' || col.dataType === 'CHAR'
+			|| (col.dataType === 'BINARY' && col.size)
+		) {
 			const size = (typeof col.size === 'number') ? col.size : DEFAULT_SIZE;
 			return `${col.dataType}(${size})`;
 		}
@@ -22,8 +24,9 @@ class JsonSqlConverter {
 		if (value === undefined) throw new Error('undefined is invalid value for insert sql');
 		if (value === null) return 'null';
 		const formatting = JsonSqlUtils.getDataTypeFormatting(dataType);
+		const str = String(value).trim();
 		if (JsonSqlUtils.isPlainFormatting(formatting)) {
-			return String(value);
+			return str;
 		}
 		if (JsonSqlUtils.isStringFormatting(formatting)) {
 			// Strings need to be wrapped in single quotes and have single quotes escaped
@@ -33,13 +36,18 @@ class JsonSqlConverter {
 			// Allow true and false to convert to 1 and 0 respectively
 			if (value === true) return '1';
 			if (value === false) return '0';
-			const str = String(value).trim();
 			// But don't allow any other type conversions
 			if (str !== '0' && str !== '1') throw new Error('Incorrect value for boolean - needs to be true, false, 0, 1');
 			return str;
 		}
 		if (JsonSqlUtils.isBinaryFormatting(formatting)) {
-			return `BINARY(${value})`;
+			// This should capture things like "0x010203040506" and "UUID_TO_BIN(UUID())"
+			if (str.substring(0, 2) === '0x'
+				|| str.substring(0, 11).toUpperCase() === 'UUID_TO_BIN'
+			) {
+				return str;
+			}
+			return `BINARY(${str})`;
 		}
 		console.warn('Unknown formatting', value, dataType);
 		return String(value);
@@ -125,7 +133,7 @@ class JsonSqlConverter {
 			const { dataType } = col;
 			// const dataType = JsonSqlConverter.getColumnDataType(col);
 			const value = JsonSqlConverter.getInsertValueSql(whereObj[fieldName], dataType);
-			if (String(value).toLowerCase === 'null') return `${fieldName} IS NULL`;
+			if (String(value).toLowerCase() === 'null') return `${fieldName} IS NULL`;
 			return `${fieldName} = ${value}`;
 		});
 		return whereArray.join(' AND ');
@@ -140,7 +148,10 @@ class JsonSqlConverter {
 	static makeInsertRecordIntoSql(table = {}, record = {}, options = {}) {
 		const { columnNames, sqlValues } = JsonSqlConverter.getOrderedSqlArrays(table, record, options);
 		const columnNamesCsv = columnNames.join(COMMA);
-		return `INSERT INTO ${table.name} (${columnNamesCsv}) VALUES (${sqlValues.join(COMMA)})`;
+		const sql = `INSERT INTO ${table.name} (${columnNamesCsv}) VALUES (${sqlValues.join(COMMA)})`;
+		if (!options.onDuplicateKeyUpdate) return sql;
+		const setsSql = JsonSqlConverter.makeUpateSetsSql(columnNames, sqlValues);
+		return `${sql} ON DUPLICATE KEY UPDATE ${setsSql}`;
 	}
 
 	static makeInsertIntoSql(table = {}, dataParam, options = {}) {
@@ -160,15 +171,20 @@ class JsonSqlConverter {
 		return `INSERT INTO ${table.name} (${columnNamesCsv}) VALUES ${allValuesCsv}`;
 	}
 
+	static makeUpateSetsSql(columnNames, sqlValues) {
+		const sqlSets = columnNames.map((columnName, i) => (
+			`${columnName} = ${sqlValues[i]}`
+		));
+		return sqlSets.join(COMMA);
+	}
+
 	static makeUpdateSql(table = {}, setData = {}, where, options = {}) {
 		const { columnNames, sqlValues } = JsonSqlConverter.getOrderedSqlArrays(
 			table, setData, options,
 		);
-		const sqlSets = columnNames.map((columnName, i) => (
-			`${columnName} = ${sqlValues[i]}`
-		));
+		const setsSql = JsonSqlConverter.makeUpateSetsSql(columnNames, sqlValues);
 		const whereSql = JsonSqlConverter.makeWhereSql(where, table);
-		return `UPDATE ${table.name} SET ${sqlSets.join(COMMA)} WHERE ${whereSql}`;
+		return `UPDATE ${table.name} SET ${setsSql} WHERE ${whereSql}`;
 	}
 }
 

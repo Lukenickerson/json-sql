@@ -49,6 +49,14 @@ class JsonSqlDatabase {
 		return this.connection.runQuery(sql, values);
 	}
 
+	upsert(tableName, data) {
+		const table = this.findTable(tableName);
+		const options = { placeholder: '?', onDuplicateKeyUpdate: true };
+		const insertSql = JsonSqlConverter.makeInsertIntoSql(table, data, options);
+		const values = JsonSqlConverter.getOrderedValuesArray(table, data);
+		return this.connection.runQuery(insertSql, values);
+	}
+
 	query(sql, values) {
 		return this.connection.runQuery(sql, values);
 	}
