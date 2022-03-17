@@ -13,21 +13,18 @@ class DatabaseConnection {
 			this.console = { log: NOOP, warn: NOOP, error: NOOP };
 		}
 		this.config = config;
-		this.mysqlConnection = this.createMySqlConnection();
 		this.isConnected = false;
+		this.mysqlConnection = null;
+		this.createMySqlConnection();
 	}
 
 	createMySqlConnection() {
+		const { config } = this;
 		this.console.log(
-			'Creating MySql connection',
-			// this.config,
-			(this.config ? `${this.config.localAddress}:${this.config.port}` : ''),
+			'Creating MySql connection', (config ? `${config.localAddress}:${config.port}` : ''),
 		);
-		return mysql.createConnection(this.config);
-	}
-
-	resetMySqlConnection() {
-		this.mysqlConnection = this.createMySqlConnection();
+		this.mysqlConnection = mysql.createConnection(config);
+		return this.mysqlConnection;
 	}
 
 	connectWithoutRetry() {
@@ -77,7 +74,7 @@ class DatabaseConnection {
 		return new Promise((resolve, reject) => {
 			try {
 				const queryCallback = (error, results, fields) => {
-					if (error) console.warn('\tSQL error:', error); // Would it be better to reject?
+					// if (error) this.console.warn('\tSQL error:', error); // Would it be better to reject?
 					// else console.log('SQL success');
 					// console.log('\tSQL result:', results);
 					resolve({ error, results, fields });
@@ -117,7 +114,7 @@ class DatabaseConnection {
 			} catch (err) {
 				// Because we "cannot enqueue handshake after fatal error" we need
 				// to recreate the MySql connection
-				this.resetMySqlConnection();
+				this.createMySqlConnection();
 				// this.console.warn('\tCheck - connection failed or other error', err);
 			}
 			await DatabaseConnection.wait(waitSeconds);
