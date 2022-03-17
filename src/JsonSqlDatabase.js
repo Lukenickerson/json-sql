@@ -54,7 +54,9 @@ class JsonSqlDatabase {
 		const options = { placeholder: '?', onDuplicateKeyUpdate: true };
 		const insertSql = JsonSqlConverter.makeInsertIntoSql(table, data, options);
 		const values = JsonSqlConverter.getOrderedValuesArray(table, data);
-		return this.connection.runQuery(insertSql, values);
+		// Need the values twice because we're using onDuplicateKeyUpdate
+		const valuesTwice = [...values, ...values];
+		return this.connection.runQuery(insertSql, valuesTwice);
 	}
 
 	query(sql, values) {

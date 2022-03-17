@@ -38,9 +38,16 @@ const SQL_DATATYPE_VALUE_FORMATTING = Object.freeze({
 	VARBINARY: FORMATTING.BINARY,
 	// TODO: handle other data types differently:
 	// JSON - https://dev.mysql.com/doc/refman/8.0/en/json.html
+	JSON: FORMATTING.STRING,
 	// spatial? - https://dev.mysql.com/doc/refman/8.0/en/spatial-types.html
 	// ENUM, SET - https://dev.mysql.com/doc/refman/8.0/en/string-types.html
+	ENUM: FORMATTING.STRING,
 	// DATE, TIME, DATETIME, TIMESTAMP, YEAR - https://dev.mysql.com/doc/refman/8.0/en/date-and-time-types.html
+	DATE: FORMATTING.STRING,
+	TIME: FORMATTING.STRING,
+	DATETIME: FORMATTING.STRING,
+	TIMESTAMP: FORMATTING.STRING,
+	YEAR: FORMATTING.STRING,
 });
 
 export {
