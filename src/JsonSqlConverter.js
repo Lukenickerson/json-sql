@@ -88,6 +88,18 @@ class JsonSqlConverter {
 		return { columnNames, sqlValues };
 	}
 
+	/** Makes an object like: { "constraint_name": ["field_1", "field_2"] } */
+	static getUniqueConstraints(columns = []) {
+		return columns.reduce((incomingObj, col) => {
+			const isUniqueConstraint = (col.unique && typeof col.unique === 'string');
+			const obj = { ...incomingObj };
+			// Should we remove spaces from col.unique?
+			if (isUniqueConstraint && !obj[col.unique]) obj[col.unique] = [];
+			obj[col.unique].push(col.name);
+			return obj;
+		}, {});
+	}
+
 	// ---------- Make SQL
 
 	static makeCreateTableColumnsSql(columns = []) {
@@ -100,7 +112,9 @@ class JsonSqlConverter {
 			if (col.sql) lineComponents.push(col.sql);
 			if (!col.nullable) lineComponents.push('NOT NULL');
 			if (col.autoIncrement) lineComponents.push('AUTO_INCREMENT');
-			if (col.unique) lineComponents.push('UNIQUE');
+			// Check that unique is true, but not a string; if it's a string then it'll be a
+			// different kind of uniqueness constraint
+			if (col.unique && typeof col.unique !== 'string') lineComponents.push('UNIQUE');
 			if (col.primaryKey) {
 				lineComponents.push('PRIMARY KEY');
 				// keyLines.push(`PRIMARY KEY (${col.name})`);
@@ -119,8 +133,23 @@ class JsonSqlConverter {
 		].join(COMMA);
 	}
 
+	/** Meant to be used during CREATE, but could also be used during ALTER TABLE by adding 'ADD' */
+	static makeCreateTableConstraintsSqlArray(columns = []) {
+		const uConstraints = JsonSqlConverter.getUniqueConstraints(columns);
+		return Object.keys(uConstraints).map((uConstraintKey) => {
+			// This assumes col.unique (aka. uConstraintKey) has no spaces
+			const fieldsArr = uConstraints[uConstraintKey];
+			return `CONSTRAINT ${uConstraintKey} UNIQUE (${fieldsArr.join(COMMA)})`;
+		});
+	}
+
 	static makeCreateTableSql(table) {
-		return `CREATE TABLE ${table.name} (${JsonSqlConverter.makeCreateTableColumnsSql(table.columns)})`;
+		let colsSql = JsonSqlConverter.makeCreateTableColumnsSql(table.columns);
+		const constraintSqlArr = JsonSqlConverter.makeCreateTableConstraintsSqlArray(table.columns);
+		if (constraintSqlArr.length) {
+			colsSql += `, ${constraintSqlArr.join(COMMA)}`;
+		}
+		return `CREATE TABLE ${table.name} (${colsSql})`;
 	}
 
 	static makeWhereSql(whereObj = {}, table = {}) {

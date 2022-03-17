@@ -35,7 +35,8 @@ class JsonSqlMarkdown {
 				(col.primaryKey ? 'PK (Must be unique)' : null),
 				JsonSqlMarkdown.getFriendlyForeignKey(col),
 				(col.nullable ? 'null allowed' : 'required'),
-				(col.unique ? 'must be unique' : null),
+				(col.unique && typeof col.unique !== 'string') ? 'must be unique' : null,
+				(col.unique && typeof col.unique === 'string') ? `unique constraint "${col.unique}"` : null,
 				(col.autoIncrement ? 'auto-increment' : null),
 				(col.defaultValue ? `default: ${col.defaultValue}` : null),
 			];
