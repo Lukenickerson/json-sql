@@ -93,8 +93,9 @@ class JsonSqlConverter {
 		return columns.reduce((incomingObj, col) => {
 			const isUniqueConstraint = (col.unique && typeof col.unique === 'string');
 			const obj = { ...incomingObj };
+			if (!isUniqueConstraint) return obj;
 			// Should we remove spaces from col.unique?
-			if (isUniqueConstraint && !obj[col.unique]) obj[col.unique] = [];
+			if (!obj[col.unique]) obj[col.unique] = [];
 			obj[col.unique].push(col.name);
 			return obj;
 		}, {});
