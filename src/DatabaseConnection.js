@@ -3,24 +3,41 @@
 import mysql from 'mysql'; // https://github.com/mysqljs/mysql
 
 const NOOP = () => {};
+const DEFAULT_AUTO_CONNECT = true;
 
 /** A wrapper for mysql, to allow for easy promise/async/await-based querying */
 class DatabaseConnection {
 	constructor(config = {}) {
-		if (config.console) {
-			this.console = (typeof config.console === 'object') ? config.console : console;
-		} else {
-			this.console = { log: NOOP, warn: NOOP, error: NOOP };
-		}
+		this.logger = DatabaseConnection.getLogger(config);
+		// Save the config because it should contain properties needed for connecting to mysql
 		this.config = config;
 		this.isConnected = false;
 		this.mysqlConnection = null;
-		this.createMySqlConnection();
+		// Should we create a connection? (Typically yes)
+		const autoConnect = (typeof this.config.autoConnect === 'undefined') ? DEFAULT_AUTO_CONNECT : Boolean(this.config.autoConnect);
+		if (autoConnect) this.createMySqlConnection();
+	}
+
+	static getLogger(config = {}) {
+		const logger = config.logger || config.console || false;
+		if (typeof logger === 'object' && logger.log && logger.warn) return logger;
+		// if console param is truthy but not an object, then use default global console
+		if (config.console) return console;
+		// Default is to provide non-functional methods
+		return { log: NOOP, warn: NOOP, error: NOOP, info: NOOP };
+	}
+
+	getConnectionConfig() {
+		// TODO: Maybe switch this to just pull out the value needed
+		const config = { ...this.config };
+		delete config.console;
+		delete config.logger;
+		return config;
 	}
 
 	createMySqlConnection() {
-		const { config } = this;
-		this.console.log(
+		const config = this.getConnectionConfig();
+		this.logger.log(
 			'Creating MySql connection', (config ? `${config.localAddress}:${config.port}` : ''),
 		);
 		this.mysqlConnection = mysql.createConnection(config);
@@ -97,7 +114,7 @@ class DatabaseConnection {
 				const result = await this.runQuery(queries[i]);
 				results.push(result);
 			} catch (error) {
-				this.console.warn(error);
+				this.logger.warn(error);
 				results.push({ error });
 			}
 		}
@@ -107,7 +124,7 @@ class DatabaseConnection {
 	async connect(retryCount = 0, waitSeconds = 1) {
 		if (this.isConnected) return;
 		for (let i = retryCount; i >= 0; i -= 1) {
-			this.console.log('Connect attempt - countdown from', i);
+			this.logger.log('Connect attempt - countdown from', i);
 			try {
 				await this.connectWithoutRetry();
 				return; // Success!
@@ -115,7 +132,7 @@ class DatabaseConnection {
 				// Because we "cannot enqueue handshake after fatal error" we need
 				// to recreate the MySql connection
 				this.createMySqlConnection();
-				// this.console.warn('\tCheck - connection failed or other error', err);
+				// this.logger.warn('\tCheck - connection failed or other error', err);
 			}
 			await DatabaseConnection.wait(waitSeconds);
 		}
@@ -126,19 +143,19 @@ class DatabaseConnection {
 		if (retryCount <= 0) return false;
 		// await this.connect();
 		for (let i = retryCount; i > 0; i -= 1) {
-			this.console.log('Check', i);
+			this.logger.log('Check', i);
 			try {
 				await this.connect();
 				const { error } = await this.runQuery('show databases'); // 'SELECT 1 + 1 AS solution');
 				// await this.disconnect();
 				if (!error) {
-					this.console.log('\tCheck - Connected and test query was successful');
+					this.logger.log('\tCheck - Connected and test query was successful');
 					// this.disconnect();
 					return true;
 				}
-				this.console.warn('\tCheck - test query failed');
+				this.logger.warn('\tCheck - test query failed');
 			} catch (err) {
-				this.console.warn('\tCheck - connection failed or other error', err);
+				this.logger.warn('\tCheck - connection failed or other error', err);
 			}
 			await DatabaseConnection.wait(waitSeconds);
 		}
