@@ -32,6 +32,10 @@ class JsonSqlConverter {
 			// Strings need to be wrapped in single quotes and have single quotes escaped
 			return `'${value.replaceAll("'", "\\'")}'`;
 		}
+		if (JsonSqlUtils.isDateFormatting(formatting)) {
+			// TODO: Same as string or as plain or different?
+			return `'${value.replaceAll("'", "\\'")}'`;
+		}
 		if (JsonSqlUtils.isBooleanFormatting(formatting)) {
 			// Allow true and false to convert to 1 and 0 respectively
 			if (value === true) return '1';

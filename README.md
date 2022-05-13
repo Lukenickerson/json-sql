@@ -114,9 +114,10 @@ await db.disconnect();
 Want to add something? Make a PR.
 
 ## Future Improvement
+- [ ] Allow named constraints
 - [ ] Clean up validation code
+- [ ] Consider renaming this project, and using some functionality of identically named [json-sql](https://github.com/2do2go/json-sql)
 - [ ] Better documentation of all params, methods
 - [ ] MariaDb container for testing database connection
 - [ ] Handling of all data types
 - [ ] Unit testing
-

@@ -7,6 +7,7 @@ const FORMATTING = Object.freeze({
 	PLAIN: 'plain',
 	STRING: 'str',
 	BINARY: 'bin',
+	DATE: 'date',
 });
 // Mapping of SQL datatypes to the internal formatting type used for values
 const SQL_DATATYPE_VALUE_FORMATTING = Object.freeze({
@@ -43,11 +44,11 @@ const SQL_DATATYPE_VALUE_FORMATTING = Object.freeze({
 	// ENUM, SET - https://dev.mysql.com/doc/refman/8.0/en/string-types.html
 	ENUM: FORMATTING.STRING,
 	// DATE, TIME, DATETIME, TIMESTAMP, YEAR - https://dev.mysql.com/doc/refman/8.0/en/date-and-time-types.html
-	DATE: FORMATTING.STRING,
-	TIME: FORMATTING.STRING,
-	DATETIME: FORMATTING.STRING,
-	TIMESTAMP: FORMATTING.STRING,
-	YEAR: FORMATTING.STRING,
+	DATE: FORMATTING.DATE,
+	TIME: FORMATTING.DATE,
+	DATETIME: FORMATTING.DATE,
+	TIMESTAMP: FORMATTING.DATE,
+	YEAR: FORMATTING.DATE,
 });
 
 export {

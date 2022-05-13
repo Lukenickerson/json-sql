@@ -46,6 +46,10 @@ class JsonSqlUtils {
 	static isBinaryFormatting(formatting) {
 		return (formatting === FORMATTING.BINARY);
 	}
+
+	static isDateFormatting(formatting) {
+		return (formatting === FORMATTING.DATE);
+	}
 }
 
 export default JsonSqlUtils;
