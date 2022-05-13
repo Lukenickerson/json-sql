@@ -63,6 +63,26 @@ class JsonSqlDatabase {
 		return this.connection.runQuery(sql, values);
 	}
 
+	/** Get primary key for a table; assumes there is only one; will return the last one found */
+	getTablePrimaryKey(tableName) {
+		const table = this.findTable(tableName);
+		if (!table) return null;
+		const pk = table.columns.reduce((n, col) => (col.primaryKey ? col.name : n), null);
+		return pk;
+	}
+
+	findUniqueColumns(tableName, uniqueConstraintName) {
+		const table = this.findTable(tableName);
+		if (!table) return null;
+		return table.columns.filter((col) => (col.unique === uniqueConstraintName));
+	}
+
+	findUniqueColumnNames(tableName, uniqueConstraintName) {
+		const cols = this.findUniqueColumns(tableName, uniqueConstraintName);
+		if (!cols) return null;
+		return cols.map((col) => (col.name));
+	}
+
 	// Setup
 
 	createSetupQueries() {
