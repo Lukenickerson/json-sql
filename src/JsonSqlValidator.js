@@ -25,7 +25,8 @@ class JsonSqlValidator {
 	static validateColumnInsertData(colName, value, table = {}, tables = []) {
 		const validationErrors = [];
 		const col = JsonSqlUtils.findColumn(colName, table.columns);
-		if (!col) throw new Error(`Could not validate - no column ${colName} for table ${table ? table.name : 'NO TABLE'}`);
+		const tableName = table ? table.name : 'NO TABLE';
+		if (!col) throw new Error(`Could not validate - no column ${colName} for table ${tableName}`);
 		const {
 			foreignKey, nullable, dataType, size, primaryKey, unique,
 		} = col;
@@ -36,7 +37,7 @@ class JsonSqlValidator {
 		}
 		// Check nullable
 		if (value === null && !nullable) {
-			validationErrors.push(`Null values are not allowed for column ${colName}`);
+			validationErrors.push(`Null values are not allowed for column ${colName} on ${tableName}`);
 		}
 		// Check dataType
 		if (dataType) {
@@ -48,13 +49,13 @@ class JsonSqlValidator {
 			if (JsonSqlUtils.isStringFormatting(formatting) && typeof size === 'number') {
 				const len = String(value).length;
 				if (len > size) {
-					validationErrors.push(`Value (${value}) size ${len} longer than ${size} for ${colName}`);
+					validationErrors.push(`Value (${value}) size ${len} longer than ${size} for ${colName} on ${tableName}`);
 				}
 			}
 		}
 		if (primaryKey || unique) {
 			if (!table.data) {
-				validationErrors.push('Missing table.data so could not validate uniqueness');
+				validationErrors.push(`Missing table.data on ${tableName} so could not validate uniqueness for ${colName}`);
 			}
 			// TODO: If data exists in table, then check uniqueness / PK (conflict with existing values)
 			// const errors = JsonSqlValidator.validateForeignKey(value, col.foreignKey, tables);
