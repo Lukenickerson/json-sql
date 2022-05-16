@@ -53,6 +53,10 @@ class JsonSqlValidator {
 				}
 			}
 		}
+		// Disabling unique check because this is incomplete, and it's not always practical to
+		// have all rows of data in the table's data.
+		// TODO: Get this working, but provide an option to toggle this check on/off
+		/*
 		if (primaryKey || unique) {
 			if (!table.data) {
 				validationErrors.push(`Missing table.data on ${tableName} so could not validate uniqueness for ${colName}`);
@@ -61,6 +65,7 @@ class JsonSqlValidator {
 			// const errors = JsonSqlValidator.validateForeignKey(value, col.foreignKey, tables);
 			// JsonSqlValidator.addErrors(validationErrors, errors);
 		}
+		*/
 		return validationErrors;
 	}
 

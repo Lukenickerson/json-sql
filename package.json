@@ -1,6 +1,6 @@
 {
   "name": "json-sql",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "ORM for creating SQL from JSON",
   "main": "index.js",
   "type": "module",
