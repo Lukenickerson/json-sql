@@ -1,14 +1,14 @@
 /* eslint-disable no-await-in-loop */
 // We want this to run queries synchronously
 import mysql from 'mysql'; // https://github.com/mysqljs/mysql
+import getLoggerFromConfig from './getLoggerFromConfig.js';
 
-const NOOP = () => {};
 const DEFAULT_AUTO_CONNECT = true;
 
 /** A wrapper for mysql, to allow for easy promise/async/await-based querying */
 class DatabaseConnection {
 	constructor(config = {}) {
-		this.logger = DatabaseConnection.getLogger(config);
+		this.logger = getLoggerFromConfig(config);
 		// Save the config because it should contain properties needed for connecting to mysql
 		this.config = config;
 		this.isConnected = false;
@@ -16,15 +16,6 @@ class DatabaseConnection {
 		// Should we create a connection? (Typically yes)
 		const autoConnect = (typeof this.config.autoConnect === 'undefined') ? DEFAULT_AUTO_CONNECT : Boolean(this.config.autoConnect);
 		if (autoConnect) this.createMySqlConnection();
-	}
-
-	static getLogger(config = {}) {
-		const logger = config.logger || config.console || false;
-		if (typeof logger === 'object' && logger.log && logger.warn) return logger;
-		// if console param is truthy but not an object, then use default global console
-		if (config.console) return console;
-		// Default is to provide non-functional methods
-		return { log: NOOP, warn: NOOP, error: NOOP, info: NOOP };
 	}
 
 	getConnectionConfig() {

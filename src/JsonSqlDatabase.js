@@ -1,11 +1,14 @@
 import DatabaseConnection from './DatabaseConnection.js';
 import JsonSqlUtils from './JsonSqlUtils.js';
 import JsonSqlConverter from './JsonSqlConverter.js';
+import getLoggerFromConfig from './getLoggerFromConfig.js';
+
 
 class JsonSqlDatabase {
 	constructor(name, tables = [], connectionConfigParam = {}) {
 		this.name = name;
 		this.tables = tables;
+		this.logger = getLoggerFromConfig(connectionConfigParam, false);
 		this.connectionConfig = {
 			database: this.name,
 			...connectionConfigParam,
@@ -22,10 +25,12 @@ class JsonSqlDatabase {
 	}
 
 	async connect() {
+		this.logger.log(this.name, 'connecting');
 		await this.connection.connect(30, 2);
 	}
 
 	async disconnect() {
+		this.logger.log(this.name, 'disconnecting');
 		await this.connection.disconnect();
 	}
 
@@ -33,20 +38,20 @@ class JsonSqlDatabase {
 		const table = this.findTable(tableName);
 		const insertSql = JsonSqlConverter.makeInsertIntoSql(table, data, { placeholder: '?' });
 		const values = JsonSqlConverter.getOrderedValuesArray(table, data);
-		return this.connection.runQuery(insertSql, values);
+		return this.query(insertSql, values);
 	}
 
 	select(tableName, fieldNames = [], where) {
 		const table = this.findTable(tableName);
 		const sql = JsonSqlConverter.makeSelectSql(table, fieldNames, where);
-		return this.connection.runQuery(sql);
+		return this.query(sql);
 	}
 
 	update(tableName, setData, where) {
 		const table = this.findTable(tableName);
 		const sql = JsonSqlConverter.makeUpdateSql(table, setData, where, { placeholder: '?' });
 		const values = JsonSqlConverter.getOrderedValuesArray(table, setData);
-		return this.connection.runQuery(sql, values);
+		return this.query(sql, values);
 	}
 
 	upsert(tableName, data) {
@@ -56,10 +61,11 @@ class JsonSqlDatabase {
 		const values = JsonSqlConverter.getOrderedValuesArray(table, data);
 		// Need the values twice because we're using onDuplicateKeyUpdate
 		const valuesTwice = [...values, ...values];
-		return this.connection.runQuery(insertSql, valuesTwice);
+		return this.query(insertSql, valuesTwice);
 	}
 
 	query(sql, values) {
+		this.logger.log(`Querying ${this.name}:`, sql, values);
 		return this.connection.runQuery(sql, values);
 	}
 
@@ -111,6 +117,7 @@ class JsonSqlDatabase {
 		this.connection = new DatabaseConnection(connectionConfig);
 		await this.connect();
 		const queries = this.createSetupQueries();
+		this.logger.log(`Running setup queries on ${this.name}:`, queries);
 		const results = await this.connection.runQueries(queries);
 		const errorCount = results
 			// .filter((r) => r.error)
