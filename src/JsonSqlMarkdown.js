@@ -4,6 +4,19 @@ class JsonSqlMarkdown {
 	// constructor() {
 	// }
 
+	static getOrderedTables(tables = [], tableNames) {
+		// If no option for tableNames, then just return the tables as is
+		if (typeof tableNames === 'undefined') return tables;
+		if (!(tableNames instanceof Array)) return tables;
+		const orderedTables = [];
+		tableNames.forEach((tableName) => {
+			const table = tables.find((t) => t.name === tableName);
+			if (table) orderedTables.push(table);
+			else console.warn(`Table ${tableName} not found in`, tables);
+		});
+		return orderedTables;
+	}
+
 	static getFriendlyDataType(col = {}) {
 		if (!col.dataType) return 'Unspecified data type';
 		if (col.dataType === 'CHAR' && col.size === 1) return 'one letter';
@@ -96,7 +109,8 @@ class JsonSqlMarkdown {
 	// If you want to add in SQL, you could do something like:
 	// makeTableMarkdown(table, {}, [`SQL: \`${JsonSqlConverter.makeCreateTableSql(table)}\``]);
 
-	static makeTablesMarkdown(tables = [], options = {}) {
+	static makeTablesMarkdown(tablesParam = [], options = {}) {
+		const tables = JsonSqlMarkdown.getOrderedTables(tablesParam, options.tableNames);
 		const makeTableMarkdown = (table) => JsonSqlMarkdown.makeTableMarkdown(table, options);
 		return [
 			`# ${options.title || 'Tables'}`,
